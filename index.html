@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WandCaster - Interactive 3D WebAR Gesture Spellcasting Range</title>
+    <meta name="description" content="Unleash your inner wizard in WandCaster! Practice continuous hover levitation (Leviosa), precise pulling forces (Accio), and rapid-velocity repelling energy (Depulso) inside a premium, fully-responsive 3D WebAR gesture-tracking arena." />
+    <meta name="keywords" content="WandCaster, WebAR, 3D spellcasting, MediaPipe, hand tracking, Three.js, gesture controls, WebAR practice range" />
+    <meta name="author" content="WandCaster Team" />
+    
+    <!-- Open Graph Metadata for rich link previews -->
+    <meta property="og:title" content="WandCaster - Interactive 3D WebAR Gesture Spellcasting" />
+    <meta property="og:description" content="Cast spells in real-time in your browser! Fly volleyballs and cyber bats using advanced hand tracking and gesture detection." />
+    <meta property="og:image" content="/favicon.svg" />
+    <meta property="og:type" content="website" />
+
+    <!-- Google Fonts for premium typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+      body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #111; /* Space Black/Grey */
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #97FEED; /* Bright Electric Mint Cyan Text */
+      }
+      
+      /* Subtle background magic ambient elements */
+      .bg-glow {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(151, 254, 237, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+        top: -100px;
+        left: -100px;
+        pointer-events: none;
+        z-index: 1;
+        filter: blur(60px);
+      }
+
+      /* Premium Neumorphic Layout HUD */
+      #ui-layer {
+        position: absolute;
+        top: 25px;
+        left: 25px;
+        z-index: 10;
+        pointer-events: none;
+        width: 350px;
+        box-sizing: border-box;
+        
+        /* Neumorphic Extrusion in Deep Teal color (#0B666A) */
+        background: #0B666A;
+        box-shadow: 10px 10px 24px #041035, -10px -10px 24px #12a5ab; /* Midnight shadow & teal cyan highlights */
+        border: 1px solid rgba(151, 254, 237, 0.15); /* Soft glowing mint border */
+        border-radius: 24px;
+        padding: 24px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: 'Outfit', sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #97FEED 0%, #35A29F 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+      }
+
+      .subtitle {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: rgba(151, 254, 237, 0.5); /* Mint color with low opacity */
+        font-weight: 700;
+        margin-bottom: 16px;
+      }
+
+      /* FIXED Neumorphic Inset Panel for Logs/Status (No more horizontal squishing!) */
+      #status {
+        display: block; /* Removed display: flex to prevent horizontal text column overlapping defect */
+        font-size: 12px;
+        line-height: 1.6;
+        color: #ffffff; /* Contrast white text */
+        background: #053234; /* Darker inset teal */
+        box-shadow: inset 4px 4px 8px #021a1b, inset -4px -4px 8px #084c4f;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        min-height: 38px;
+        box-sizing: border-box;
+      }
+
+      #status strong {
+        color: #97FEED; /* Accent highlight */
+      }
+
+      #status em {
+        color: #35A29F; /* Highlight names */
+        font-style: normal;
+        font-weight: 700;
+      }
+
+      /* Neumorphic Practice Range Scorecard */
+      #scorecard-card {
+        background: #0B666A;
+        box-shadow: 5px 5px 12px #053234, -5px -5px 12px #12a5ab;
+        border-radius: 16px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        border: 1px solid rgba(151, 254, 237, 0.2);
+      }
+
+      .score-icon-box {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        background: #053234;
+        box-shadow: inset 3px 3px 6px #021a1b, inset -3px -3px 6px #084c4f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+
+      .score-title {
+        color: #97FEED;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 1px;
+      }
+
+      .score-value {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 13px;
+        margin-top: 2px;
+      }
+
+      /* Neumorphic Grimoire Guide Cards */
+      .guide-section {
+        margin-top: 18px;
+        border-top: 1px solid rgba(151, 254, 237, 0.15);
+        padding-top: 18px;
+        transition: all 0.3s ease;
+      }
+
+      .guide-title {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: rgba(151, 254, 237, 0.55);
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+
+      .spell-card {
+        background: #0B666A;
+        box-shadow: 5px 5px 12px #053234, -5px -5px 12px #12a5ab;
+        border-radius: 14px;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(151, 254, 237, 0.05);
+      }
+
+      /* Inset Neumorphic Icons */
+      .spell-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: #053234;
+        box-shadow: inset 3px 3px 6px #021a1b, inset -3px -3px 6px #084c4f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Outfit', sans-serif;
+      }
+
+      .leviosa-icon { color: #97FEED; }
+      .depulso-icon { color: #35A29F; }
+      .accio-icon { color: #e0fffa; }
+
+      .spell-info { flex: 1; }
+
+      .spell-name {
+        font-size: 12px;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .spell-desc {
+        font-size: 10px;
+        color: rgba(151, 254, 237, 0.65);
+        margin-top: 2px;
+        line-height: 1.4;
+      }
+
+      /* Neumorphic Guide Toggle Button for Mobile */
+      .neumorphic-toggle-btn {
+        pointer-events: auto;
+        background: #0B666A;
+        box-shadow: 4px 4px 10px #053234, -4px -4px 10px #12a5ab;
+        border-radius: 10px;
+        color: #97FEED;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border: none;
+        padding: 6px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .neumorphic-toggle-btn:active {
+        box-shadow: inset 2px 2px 5px #053234, inset -2px -2px 5px #12a5ab;
+        color: #35A29F;
+      }
+
+      /* Mobile Camera Feed Overlay Picture-in-Picture */
+      #debug-canvas {
+        position: absolute;
+        bottom: 25px;
+        right: 25px;
+        width: 200px;
+        height: 150px;
+        z-index: 100;
+        transform: scaleX(-1); /* Mirror camera feed */
+        
+        background-color: #053234;
+        border: 1px solid rgba(151, 254, 237, 0.2);
+        border-radius: 18px;
+        box-shadow: 12px 12px 30px rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+      }
+
+      /* Master Wizard Victory Screen (Neumorphic Glow Overlay) */
+      #victory-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(7, 25, 82, 0.85); /* Midnight overlay */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 200;
+        pointer-events: auto;
+      }
+
+      .victory-card {
+        text-align: center;
+        max-width: 360px;
+        width: calc(100% - 40px);
+        background: #0B666A;
+        box-shadow: 12px 12px 30px #053234, -12px -12px 30px #12a5ab;
+        border: 1px solid rgba(151, 254, 237, 0.4);
+        border-radius: 28px;
+        padding: 40px 30px;
+        color: white;
+        box-sizing: border-box;
+      }
+
+      .victory-trophy {
+        font-size: 50px;
+        margin-bottom: 12px;
+        animation: bounce 1.2s infinite alternate ease-in-out;
+      }
+
+      .victory-title {
+        margin: 0;
+        font-family: 'Outfit', sans-serif;
+        font-size: 28px;
+        background: linear-gradient(135deg, #97FEED 0%, #35A29F 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+      }
+
+      .victory-subtitle {
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: rgba(151, 254, 237, 0.55);
+        margin-top: 6px;
+        margin-bottom: 20px;
+        font-weight: 700;
+      }
+
+      .victory-desc {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.6;
+        margin-bottom: 26px;
+      }
+
+      /* Premium Neumorphic Reset Button */
+      .neumorphic-reset-btn {
+        background: #0B666A;
+        box-shadow: 6px 6px 15px #053234, -6px -6px 15px #12a5ab;
+        border: none;
+        border-radius: 14px;
+        color: #97FEED;
+        padding: 12px 24px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.2s ease;
+      }
+
+      .neumorphic-reset-btn:active {
+        box-shadow: inset 3px 3px 6px #053234, inset -3px -3px 6px #12a5ab;
+        color: #35A29F;
+      }
+
+      @keyframes bounce {
+        from { transform: translateY(0); }
+        to { transform: translateY(-8px); }
+      }
+
+      /* ==========================================================================
+         MOBILE WRAPPING & ERGONOMIC LAYOUT (SCREEN WIDTH < 768PX)
+         ========================================================================== */
+      @media (max-width: 768px) {
+        #ui-layer {
+          top: 15px;
+          left: 15px;
+          right: 15px;
+          width: calc(100% - 30px);
+          max-width: none;
+          padding: 18px;
+          border-radius: 20px;
+        }
+
+        h1 { font-size: 21px; }
+        .subtitle { margin-bottom: 12px; }
+
+        #status {
+          font-size: 11px;
+          padding: 10px 14px;
+          margin-bottom: 12px;
+        }
+
+        #scorecard-card {
+          margin-bottom: 12px;
+          padding: 10px 14px;
+        }
+
+        .score-value { font-size: 12px; }
+
+        .guide-section {
+          margin-top: 12px;
+          padding-top: 12px;
+        }
+
+        .spell-card {
+          padding: 8px 12px;
+          margin-bottom: 8px;
+        }
+
+        .spell-name { font-size: 11px; }
+        .spell-desc { font-size: 9px; line-height: 1.3; }
+
+        /* Floating compact camera feed in bottom corner */
+        #debug-canvas {
+          bottom: 15px;
+          right: 15px;
+          width: 130px;
+          height: 97px;
+          border-radius: 12px;
+          box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.6);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-glow"></div>
+    
+    <!-- Premium Neumorphic HUD Layer -->
+    <div id="ui-layer">
+      <div class="header-row">
+        <h1>WandCaster</h1>
+        <button id="toggle-guide-btn" class="neumorphic-toggle-btn">Guide ✕</button>
+      </div>
+      <div class="subtitle">Magical Gesture HUD</div>
+      
+      <div id="status">Initializing WebAR environment and AI models...</div>
+
+      <!-- Neumorphic Practice Range Scorecard -->
+      <div id="scorecard-card">
+        <div class="score-icon-box">🏆</div>
+        <div>
+          <div class="score-title">Practice Course</div>
+          <div class="score-value" id="score-status">Targets Cleared: 0 / 3</div>
+        </div>
+      </div>
+      
+      <!-- Collapsible Guide Grimoire -->
+      <div class="guide-section">
+        <div class="guide-title">Spellcaster Grimoire</div>
+        
+        <div class="spell-card" id="card-leviosa">
+          <div class="spell-icon leviosa-icon">L</div>
+          <div class="spell-info">
+            <div class="spell-name">Wingardium Leviosa (Hover)</div>
+            <div class="spell-desc">Point your index finger to levitate & float effortlessly</div>
+          </div>
+        </div>
+
+        <div class="spell-card" id="card-depulso">
+          <div class="spell-icon depulso-icon">D</div>
+          <div class="spell-info">
+            <div class="spell-name">Depulso (Sustained Push)</div>
+            <div class="spell-desc">Extend index & middle fingers to continuously push away</div>
+          </div>
+        </div>
+
+        <div class="spell-card" id="card-accio">
+          <div class="spell-icon accio-icon">A</div>
+          <div class="spell-info">
+            <div class="spell-name">Accio (Sustained Pull)</div>
+            <div class="spell-desc">Clench hand into a fist to continuously pull toward you</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Master Wizard Victory Screen (Neumorphic Overlay) -->
+    <div id="victory-overlay">
+      <div class="victory-card">
+        <div class="victory-trophy">🏆</div>
+        <h2 class="victory-title">MASTER WIZARD</h2>
+        <div class="victory-subtitle">Practice Course Cleared</div>
+        <p class="victory-desc">You have flawlessly demonstrated continuous levitation, precision pulling, and high-velocity repelling forces!</p>
+        <button id="reset-btn" class="neumorphic-reset-btn">Reset Practice Course</button>
+      </div>
+    </div>
+
+    <canvas id="debug-canvas"></canvas>
+    
+    <script type="module" src="/src/main.ts"></script>
+
+    <!-- Collapsible Grimoire scripting for Mobile Screen Real Estate -->
+    <script>
+      const toggleBtn = document.getElementById('toggle-guide-btn');
+      const guideSection = document.querySelector('.guide-section');
+      let isCollapsed = false;
+
+      if (toggleBtn && guideSection) {
+        toggleBtn.addEventListener('click', () => {
+          isCollapsed = !isCollapsed;
+          guideSection.style.display = isCollapsed ? 'none' : 'block';
+          toggleBtn.innerText = isCollapsed ? 'Guide ☰' : 'Guide ✕';
+          
+          if (isCollapsed) {
+            toggleBtn.style.boxShadow = 'inset 2px 2px 5px #053234, inset -2px -2px 5px #12a5ab';
+          } else {
+            toggleBtn.style.boxShadow = '';
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
