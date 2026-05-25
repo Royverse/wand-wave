@@ -22,7 +22,10 @@ export class HandTracker {
           delegate: "GPU"
         },
         runningMode: "VIDEO",
-        numHands: 1
+        numHands: 1,
+        minHandDetectionConfidence: 0.35,
+        minHandPresenceConfidence: 0.35,
+        minTrackingConfidence: 0.35
       });
 
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
