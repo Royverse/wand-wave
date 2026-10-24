@@ -492,16 +492,48 @@
           box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.6);
         }
       }
+    
+      /* ── Accessibility & Performance ── */
+      :focus-visible {
+        outline: 2px solid #97FEED;
+        outline-offset: 2px;
+      }
+      #brightness-val, .score-value, #score-status {
+        font-variant-numeric: tabular-nums;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
     </style>
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "WandCaster (Wonderwave)",
+      "description": "Interactive 3D WebAR gesture spellcasting range using MediaPipe hand tracking and Three.js.",
+      "applicationCategory": "GameApplication",
+      "author": {
+        "@type": "Person",
+        "name": "Roy Mootsana",
+        "url": "https://roymootsana.art"
+      }
+    }
+    </script>
   </head>
   <body>
     <div class="bg-glow"></div>
     
     <!-- Premium Neumorphic HUD Layer -->
-    <div id="ui-layer">
+    <main id="ui-layer" role="main" aria-label="WandCaster Interface">
       <div class="header-row">
         <h1>WandCaster</h1>
-        <button id="toggle-guide-btn" class="neumorphic-toggle-btn">Guide ✕</button>
+        <button id="toggle-guide-btn" class="neumorphic-toggle-btn" aria-label="Toggle Spellcaster Guide" aria-expanded="true">Guide ✕</button>
       </div>
       <div class="subtitle">Magical Gesture HUD</div>
       
@@ -523,7 +555,7 @@
           <span id="brightness-val" class="settings-value">100%</span>
         </div>
         <div class="slider-container">
-          <input type="range" id="brightness-slider" min="50" max="250" value="100" class="neumorphic-slider" />
+          <input type="range" id="brightness-slider" min="50" max="250" value="100" class="neumorphic-slider" aria-label="Camera Brightness" />
         </div>
       </div>
       
@@ -555,7 +587,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
     <!-- Master Wizard Victory Screen (Neumorphic Overlay) -->
     <div id="victory-overlay">
